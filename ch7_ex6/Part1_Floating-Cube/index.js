@@ -1,5 +1,4 @@
-import * as THREE from "three/build/three.module";
-// global scene values
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.module.js";
 var btn, gl, glCanvas, camera, scene, renderer, cube;
 
 // global xr value
