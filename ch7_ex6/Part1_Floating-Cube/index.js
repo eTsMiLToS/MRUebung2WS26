@@ -83,12 +83,18 @@ function onSessionStarted(session) {
     btn.innerHTML = "STOP AR";
     xrSession = session;
     xrSession.addEventListener("end", onSessionEnd);
-    setupWebGLLayer()
-        .then(()=> {
-            renderer.xr.setReferenceSpaceType('local');
-            renderer.xr.setSession(xrSession);
-            animate();
-        })
+   setupWebGLLayer()
+    .then(async () => {
+        renderer.xr.setReferenceSpaceType('local');
+
+        await renderer.xr.setSession(xrSession);
+
+        console.log("XR renderer ready!");
+        animate();
+    })
+    .catch(error => {
+        console.error("XR setup failed:", error);
+    });
 }
 
 function setupWebGLLayer() {
