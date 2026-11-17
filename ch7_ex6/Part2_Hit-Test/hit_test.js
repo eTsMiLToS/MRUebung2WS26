@@ -1,4 +1,4 @@
-import * as THREE from "three/build/three.module";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.module.js";
 // global scene values
 var btn, gl, glCanvas, camera, scene, renderer;
 var controller, reticle;
@@ -44,8 +44,8 @@ function loadScene() {
         var geometry = new THREE.CylinderBufferGeometry(0.1, 0.1, 0.2, 32).translate(0, 0.1, 0);
         
         // controller click event listener
-        function onSelect() {                
-                console.log("on select fired...");
+function onSelect() {
+    if (!reticle.visible) return;                console.log("on select fired...");
                 var material = new THREE.MeshPhongMaterial( { color: 0xffffff * Math.random() } );
                 var mesh = new THREE.Mesh(geometry, material);
                 mesh.applyMatrix4(reticle.matrix); // THIS IS A KEY FUNCTION
@@ -109,13 +109,18 @@ function onSessionStarted(session) {
     btn.addEventListener('click', endXRSession);
     btn.innerHTML = "STOP AR";
     xrSession = session; 
-    xrSession.addEventListener("end", endXRSession);
-    setupWebGLLayer()
-        .then(()=> {
-            renderer.xr.setReferenceSpaceType('local');
-            renderer.xr.setSession(xrSession);
-            animate();
-        })
+xrSession.addEventListener("end", onSessionEnd);    setupWebGLLayer()
+    .then(async () => {
+        renderer.xr.setReferenceSpaceType('local');
+
+        await renderer.xr.setSession(xrSession);
+
+        console.log("Hit Test XR session ready!");
+        animate();
+    })
+    .catch(error => {
+        console.error("XR setup failed:", error);
+    });
 }
 
 function setupWebGLLayer() {
@@ -130,10 +135,10 @@ function animate() {
 
 function render(time, frame) {
         if (frame) {
-                var referenceSpace = renderer.xr.getReferenceSpace('local');
-                var session = frame.session;
+var referenceSpace = renderer.xr.getReferenceSpace('local');                var session = frame.session;
                 xrViewerPose = frame.getViewerPose(referenceSpace);
                 if (hitTestSourceRequested === false) {
+                        hitTestSourceRequested = true;
                         session.requestReferenceSpace("viewer").then((referenceSpace) => {
                                 session.requestHitTestSource({space: referenceSpace})
                                 .then((source) => {
@@ -165,24 +170,22 @@ function render(time, frame) {
 
 function endXRSession() {
     if (xrSession) {
-        xrSession.end()
-                .then(()=> { 
-                        xrSession.ended = true;
-                        onSessionEnd();
-                })
-                .catch((reason) => {
-                        console.log('session not ended because ' + reason);
-                        onSessionEnd();
-                })
+        xrSession.end().catch(error => {
+            console.error("Error ending XR session:", error);
+        });
     }
-    else {onSessionEnd();}
 }
 
 function onSessionEnd() {
     xrSession = null;
-    console.log('session ended');
+    hitTestSource = null;
+    hitTestSourceRequested = false;
+
+    renderer.setAnimationLoop(null);
+
+    console.log("AR session ended");
+
     btn.innerHTML = "START AR";
-    btn.removeEventListener('click', endXRSession);
-    btn.addEventListener('click', onRequestSession);
-    window.requestAnimationFrame(render);
+    btn.removeEventListener("click", endXRSession);
+    btn.addEventListener("click", onRequestSession);
 }
