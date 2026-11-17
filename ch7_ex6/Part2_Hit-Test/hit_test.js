@@ -55,6 +55,11 @@ function onSelect() {
         // get controller WebXR Device API through Three.js
         controller = renderer.xr.getController(0);
         controller.addEventListener('select', onSelect);
+        window.addEventListener('keydown', (event) => {
+    if (event.key.toLowerCase() === 'p') {
+        onSelect();
+    }
+});
         scene.add(controller);
 
         // reticle and reticle properties
@@ -134,8 +139,7 @@ function animate() {
 
 function render(time, frame) {
         if (frame) {
-var referenceSpace = renderer.xr.getReferenceSpace('local');                var session = frame.session;
-                xrViewerPose = frame.getViewerPose(referenceSpace);
+var referenceSpace = renderer.xr.getReferenceSpace();                xrViewerPose = frame.getViewerPose(referenceSpace);
                 if (hitTestSourceRequested === false) {
                         hitTestSourceRequested = true;
                         session.requestReferenceSpace("viewer").then((referenceSpace) => {
