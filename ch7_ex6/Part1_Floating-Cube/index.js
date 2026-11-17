@@ -29,9 +29,8 @@ function loadScene() {
     var geometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
     var material = new THREE.MeshPhongMaterial({color: 0x89CFF0});
     cube = new THREE.Mesh( geometry, material );
-    cube.position.y = 0.2;
-    scene.add( cube );
-
+    cube.position.set(0, 1.5, -2);
+    scene.add(cube);
     // setup Three.js WebGL renderer
     renderer = new THREE.WebGLRenderer({
         canvas: glCanvas,
