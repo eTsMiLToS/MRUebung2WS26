@@ -3,80 +3,321 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>My VR Showroom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luxury VR Car Showroom</title>
+
   <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+
+  <script>
+    // Automatically resize and position imported cars
+    AFRAME.registerComponent('fit-car', {
+      init: function () {
+        this.el.addEventListener('model-loaded', () => {
+          const model = this.el.getObject3D('mesh');
+          if (!model) return;
+
+          const THREE = AFRAME.THREE;
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+
+          if (size.length() === 0) return;
+
+          // Resize longest dimension to 3 meters
+          const scale = 3 / Math.max(size.x, size.y, size.z);
+          model.scale.setScalar(scale);
+
+          // Recalculate bounds after scaling
+          const newBox = new THREE.Box3().setFromObject(model);
+          const center = newBox.getCenter(new THREE.Vector3());
+
+          // Center the model horizontally
+          model.position.x -= center.x;
+          model.position.z -= center.z;
+
+          // Place the bottom of the car at ground level
+          model.position.y -= newBox.min.y;
+
+          console.log('Car model loaded:', this.el.id, size);
+        });
+
+        this.el.addEventListener('model-error', (event) => {
+          console.error('Car model failed:', this.el.id, event.detail);
+        });
+      }
+    });
+  </script>
 </head>
+
 <body>
+
 <a-scene
   background="color: #DDEEFF"
-  shadow="type: pcfsoft">    <!-- Load external 3D model -->
-<a-assets>
-  <a-asset-item
-  id="carModel"
-  src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb">
-</a-asset-item>
-</a-assets>
-<!-- Imported 3D model -->
+  shadow="type: pcfsoft"
+  renderer="antialias: true; colorManagement: true">
+
+  <!-- ============================= -->
+  <!-- 3D CAR MODELS                 -->
+  <!-- ============================= -->
+
+  
+<!-- BMW M4 CSL -->
 <a-entity
-  gltf-model="#carModel"
-  position="0 1 -2"
-  rotation="0 180 0"
-  scale="1 1 1">
+  id="bmw"
+  gltf-model="url(./Models/scene.gltf)"
+  fit-car
+  position="-1 0.16 2.5"
+  rotation="0 45 0"
+  shadow="cast: true">
 </a-entity>
 
-   
-<!-- Textured floor -->
-<a-plane
-  position="0 0 0"
-  rotation="-90 0 0"
-  width="20"
-  height="20"
-  material="src: https://cdn.aframe.io/a-painter/images/floor.jpg; repeat: 10 10"
-  shadow="receive: true">
-</a-plane>
-
-
-    <!-- Five objects -->
-<a-box
-  position="-2 1 -4"
-  color="#FF5555"
+<!-- Porsche 911 GT3 RS -->
+<a-entity
+  id="porsche"
+  gltf-model="url(./GT3RS/scene.gltf)"
+  fit-car
+  position="1 0.16 2.5"
+  rotation="0 -45 0"
   shadow="cast: true">
-</a-box>
-    <a-sphere position="0 1.5 -4"
-              radius="0.8"
-              color="#55AAFF">
-    </a-sphere>
+</a-entity>
 
-    <a-cylinder position="2 1 -4"
-                radius="0.5"
-                height="2"
-                color="#55FF99">
-    </a-cylinder>
 
-    <a-cone position="-1 1 -7"
-            radius-bottom="0.7"
-            height="2"
-            color="#FFCC44">
-    </a-cone>
+  <!-- ============================= -->
+  <!-- SHOWROOM STRUCTURE            -->
+  <!-- ============================= -->
 
-    <a-torus position="1 2 -7"
-             radius="0.7"
-             color="#AA55FF">
-    </a-torus>
+  <!-- Back wall -->
+  <a-box
+    position="0 3 -9"
+    width="20"
+    height="6"
+    depth="0.2"
+    color="#252830"
+    material="roughness: 0.8"
+    shadow="receive: true">
+  </a-box>
 
-    <!-- Lighting -->
-    <a-light type="ambient" intensity="0.5"></a-light>
-    <a-light
+  <!-- Ceiling -->
+  <a-box
+    position="0 6 0"
+    width="20"
+    height="0.2"
+    depth="20"
+    color="#20232A"
+    shadow="receive: true">
+  </a-box>
+
+<!-- PORSCHE DISPLAY PLATFORM -->
+<a-cylinder
+  position="-2 0.08 0"
+  radius="2.2"
+  height="0.16"
+  color="#202020"
+  material="metalness: 0.7; roughness: 0.3"
+  shadow="receive: true">
+</a-cylinder>
+
+<!-- PORSCHE RED LIGHT RING -->
+<a-torus
+  position="-2 0.17 0"
+  rotation="-90 0 0"
+  radius="2.1"
+  radius-tubular="0.025"
+  material="color: #FF2020; emissive: #FF2020; emissiveIntensity: 2">
+</a-torus>
+
+<!-- BMW DISPLAY PLATFORM -->
+<a-cylinder
+  position="2 0.08 0"
+  radius="2.2"
+  height="0.16"
+  color="#202020"
+  material="metalness: 0.7; roughness: 0.3"
+  shadow="receive: true">
+</a-cylinder>
+
+<!-- BMW BLUE LIGHT RING -->
+<a-torus
+  position="2 0.17 0"
+  rotation="-90 0 0"
+  radius="2.1"
+  radius-tubular="0.025"
+  material="color: #0088FF; emissive: #0088FF; emissiveIntensity: 2">
+</a-torus>
+
+
+  <!-- Textured floor -->
+  <a-plane
+    position="0 0 0"
+    rotation="-90 0 0"
+    width="20"
+    height="20"
+    material="src: https://cdn.aframe.io/a-painter/images/floor.jpg; repeat: 10 10; roughness: 0.35"
+    shadow="receive: true">
+  </a-plane>
+
+
+  <!-- ============================= -->
+  <!-- FIVE GEOMETRIC OBJECTS        -->
+  <!-- ============================= -->
+
+  <!-- Red box -->
+  <a-box
+    position="-4 1.5 -7"
+    color="#FF5555"
+    shadow="cast: true">
+  </a-box>
+
+  <!-- Blue sphere -->
+  <a-sphere
+    position="-5 1 -4"
+    radius="0.8"
+    color="#55AAFF"
+    shadow="cast: true">
+  </a-sphere>
+
+  <!-- Green cylinder -->
+  <a-cylinder
+    position="5 1 -4"
+    radius="0.5"
+    height="2"
+    color="#55FF99"
+    shadow="cast: true">
+  </a-cylinder>
+
+  <!-- Yellow cone -->
+  <a-cone
+    position="-5 1 -8"
+    radius-bottom="0.7"
+    height="2"
+    color="#FFCC44"
+    shadow="cast: true">
+  </a-cone>
+
+  <!-- Purple torus -->
+  <a-torus
+    position="4 2 -8"
+    radius="0.7"
+    color="#AA55FF"
+    shadow="cast: true">
+  </a-torus>
+
+
+  <!-- ============================= -->
+  <!-- CEILING LED PANELS            -->
+  <!-- ============================= -->
+
+  <!-- Left LED -->
+  <a-box
+    position="-4 5.85 -2"
+    width="4"
+    height="0.05"
+    depth="0.3"
+    material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 1.5">
+  </a-box>
+
+  <!-- Right LED -->
+  <a-box
+    position="4 5.85 -2"
+    width="4"
+    height="0.05"
+    depth="0.3"
+    material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 1.5">
+  </a-box>
+
+  <!-- Front LED -->
+  <a-box
+    position="0 5.85 3"
+    width="5"
+    height="0.05"
+    depth="0.3"
+    material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 1.5">
+  </a-box>
+
+
+  
+<!-- BRIGHT SHOWROOM LIGHTING -->
+
+<!-- General ambient light -->
+<a-light
+  type="ambient"
+  color="#FFFFFF"
+  intensity="1.8">
+</a-light>
+
+<!-- Main overhead light -->
+<a-light
   type="directional"
-  position="-3 8 4"
-  intensity="1"
-  castShadow="true"
+  position="-3 8 5"
+  intensity="2"
   light="castShadow: true; shadowMapWidth: 2048; shadowMapHeight: 2048">
 </a-light>
 
-    <!-- Camera -->
-    <a-camera position="0 1.6 3"></a-camera>
+<!-- Porsche spotlight -->
+<a-light
+  type="spot"
+  position="-2 5 -1"
+  rotation="-70 0 0"
+  color="#FFFFFF"
+  intensity="5"
+  angle="55"
+  penumbra="0.5">
+</a-light>
 
-  </a-scene>
+<!-- BMW spotlight -->
+<a-light
+  type="spot"
+  position="2 5 -1"
+  rotation="-70 0 0"
+  color="#FFFFFF"
+  intensity="5"
+  angle="55"
+  penumbra="0.5">
+</a-light>
+
+<!-- Front fill light for both cars -->
+<a-light
+  type="point"
+  position="0 3 4"
+  color="#FFFFFF"
+  intensity="3"
+  distance="15"
+  decay="1">
+</a-light>
+
+
+  <!-- ============================= -->
+  <!-- CAMERA                        -->
+  <!-- ============================= -->
+
+ <a-camera
+  position="0 1.6 5"
+  wasd-controls="acceleration: 50"
+  look-controls="enabled: true; pointerLockEnabled: true">
+</a-camera>
+
+</a-scene>
+
+<script>
+  // Model loading feedback
+  const porsche = document.querySelector('#porsche');
+  const bmw = document.querySelector('#bmw');
+
+  porsche.addEventListener('model-loaded', () => {
+    console.log('PORSCHE LOADED SUCCESSFULLY!');
+  });
+
+  porsche.addEventListener('model-error', (event) => {
+    console.error('PORSCHE LOADING ERROR:', event.detail);
+  });
+
+  bmw.addEventListener('model-loaded', () => {
+    console.log('BMW LOADED SUCCESSFULLY!');
+  });
+
+  bmw.addEventListener('model-error', (event) => {
+    console.error('BMW LOADING ERROR:', event.detail);
+  });
+</script>
+
 </body>
 </html>
